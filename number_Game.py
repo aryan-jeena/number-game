@@ -7,8 +7,8 @@ class GameGUI:
         self.root = root
         self.root.title("Point Game")
         
-        # Set the window size and center it
-        self.root.geometry("700x600")
+        # Set the window size to 900x700 for a larger display
+        self.root.geometry("900x700")
         self.root.resizable(False, False)
         
         self.player1_points = 20
@@ -22,9 +22,9 @@ class GameGUI:
         self.player2_input = None
         
         # Configure fonts for labels and buttons
-        self.label_font = ("Arial", 14)
-        self.entry_font = ("Arial", 12)
-        self.button_font = ("Arial", 12, "bold")
+        self.label_font = ("Arial", 16)
+        self.entry_font = ("Arial", 14)
+        self.button_font = ("Arial", 14, "bold")
         
         # Round history to track and display winners
         self.round_history = []
@@ -144,14 +144,16 @@ class GameGUI:
         self.player1_input = None
         self.player2_input = None
 
-        # Check if game is over
-        if self.round == 7:
+        # Check if a player has won 4 rounds and end the game early if so
+        if self.player1_wins == 4 or self.player2_wins == 4:
             self.end_game()
         else:
-            self.round += 1
-            self.round_label.config(text=f"Round {self.round}")
-            self.current_player = self.tiebreaker_winner
-            self.update_player_prompt()
+            # Move to the next round if the game isn't over
+            if self.round < 7:
+                self.round += 1
+                self.round_label.config(text=f"Round {self.round}")
+                self.current_player = self.tiebreaker_winner
+                self.update_player_prompt()
 
     def end_game(self):
         if self.player1_wins > self.player2_wins:
