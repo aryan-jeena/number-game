@@ -76,6 +76,7 @@ class GameGUI:
         self.update_player_prompt()
 
     def update_player_prompt(self):
+        # Update prompt based on the current player
         self.player_entry_label.config(text=f"{self.current_player}, enter your points:")
     
     def switch_player(self):
@@ -90,29 +91,29 @@ class GameGUI:
             messagebox.showerror("Invalid Input", "Please enter a valid integer.")
             return
 
-        # Validate points
-        if self.current_player == "Player 1" and points > self.player1_points:
-            messagebox.showerror("Invalid Points", "Player 1 cannot bet more points than they have remaining.")
-            return
-        elif self.current_player == "Player 2" and points > self.player2_points:
-            messagebox.showerror("Invalid Points", "Player 2 cannot bet more points than they have remaining.")
-            return
-
-        # Store points for the current player and clear entry
+        # Validate points based on the current player
         if self.current_player == "Player 1":
+            if points > self.player1_points:
+                messagebox.showerror("Invalid Points", "Player 1 cannot bet more points than they have remaining.")
+                return
             self.player1_input = points
-            self.player_entry.delete(0, tk.END)
-            self.switch_player()  # Now Player 2 will enter points
-        else:
+        elif self.current_player == "Player 2":
+            if points > self.player2_points:
+                messagebox.showerror("Invalid Points", "Player 2 cannot bet more points than they have remaining.")
+                return
             self.player2_input = points
-            self.player_entry.delete(0, tk.END)
-            self.determine_round_winner()  # Both players have entered points, determine winner
+
+        # Clear entry and switch player or determine round winner
+        self.player_entry.delete(0, tk.END)
+
+        if self.player1_input is not None and self.player2_input is not None:
+            # Both players have entered points, determine winner
+            self.determine_round_winner()
+        else:
+            # Switch to the next player
+            self.switch_player()
 
     def determine_round_winner(self):
-        # Ensure both players have entered their points before proceeding
-        if self.player1_input is None or self.player2_input is None:
-            return
-        
         if self.player1_input > self.player2_input:
             round_result = "Player 1 wins the round!"
             self.player1_wins += 1
@@ -129,6 +130,7 @@ class GameGUI:
                 self.player2_wins += 1
                 self.tiebreaker_winner = "Player 1"
 
+        # Update points remaining
         self.player1_points -= self.player1_input
         self.player2_points -= self.player2_input
 
@@ -153,7 +155,7 @@ class GameGUI:
             if self.round < 7:
                 self.round += 1
                 self.round_label.config(text=f"Round {self.round}")
-                self.current_player = self.tiebreaker_winner
+                self.current_player = self.tiebreaker_winner  # Reset to tiebreaker winner for each round
                 self.update_player_prompt()
 
     def end_game(self):
