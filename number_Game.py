@@ -79,6 +79,7 @@ class GameGUI:
         self.player_entry_label.config(text=f"{self.current_player}, enter your points:")
     
     def switch_player(self):
+        # Switch to the other player
         self.current_player = "Player 1" if self.current_player == "Player 2" else "Player 2"
         self.update_player_prompt()
 
@@ -101,11 +102,11 @@ class GameGUI:
         if self.current_player == "Player 1":
             self.player1_input = points
             self.player_entry.delete(0, tk.END)
-            self.switch_player()
+            self.switch_player()  # Now Player 2 will enter points
         else:
             self.player2_input = points
             self.player_entry.delete(0, tk.END)
-            self.determine_round_winner()
+            self.determine_round_winner()  # Both players have entered points, determine winner
 
     def determine_round_winner(self):
         # Ensure both players have entered their points before proceeding
@@ -122,7 +123,7 @@ class GameGUI:
             if self.tiebreaker_winner == "Player 1":
                 round_result = "Player 1 wins the tie!"
                 self.player1_wins += 1
-                self.tiebreaker_winner = "Player 2"
+                self.tiebreaker_winner = "Player 2"  # Switch tiebreaker for next tie
             else:
                 round_result = "Player 2 wins the tie!"
                 self.player2_wins += 1
