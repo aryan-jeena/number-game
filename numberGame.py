@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Sat May 20 16:37:29 2023
-
-@author: aryanjeena
-"""
-
 import tkinter as tk
 from tkinter import messagebox
 import random
@@ -15,8 +7,8 @@ class GameGUI:
         self.root = root
         self.root.title("Point Game")
         
-        # Set the window to a fixed size and center it
-        self.root.geometry("500x400")
+        # Set the window size and center it
+        self.root.geometry("700x600")
         self.root.resizable(False, False)
         
         self.player1_points = 20
@@ -33,6 +25,9 @@ class GameGUI:
         self.label_font = ("Arial", 14)
         self.entry_font = ("Arial", 12)
         self.button_font = ("Arial", 12, "bold")
+        
+        # Round history to track and display winners
+        self.round_history = []
         
         self.setup_ui()
     
@@ -60,6 +55,7 @@ class GameGUI:
         self.player_entry_label.pack(pady=(20, 5))
         self.player_entry = tk.Entry(frame, font=self.entry_font, justify="center", width=10)
         self.player_entry.pack()
+        self.player_entry.bind("<Return>", lambda event: self.submit_points())
 
         # Submit button
         self.submit_button = tk.Button(frame, text="Submit Points", font=self.button_font, command=self.submit_points)
@@ -68,6 +64,12 @@ class GameGUI:
         # Result display
         self.result_label = tk.Label(frame, text="", font=self.label_font)
         self.result_label.pack(pady=(10, 0))
+
+        # Round history label
+        self.round_history_label = tk.Label(frame, text="Round History:", font=self.label_font)
+        self.round_history_label.pack(pady=(20, 5))
+        self.round_history_display = tk.Label(frame, text="", font=self.entry_font, justify="left")
+        self.round_history_display.pack()
 
         # Initialize the current player based on tiebreaker
         self.current_player = self.tiebreaker_winner
@@ -106,6 +108,10 @@ class GameGUI:
             self.determine_round_winner()
 
     def determine_round_winner(self):
+        # Ensure both players have entered their points before proceeding
+        if self.player1_input is None or self.player2_input is None:
+            return
+        
         if self.player1_input > self.player2_input:
             round_result = "Player 1 wins the round!"
             self.player1_wins += 1
@@ -129,6 +135,14 @@ class GameGUI:
         self.player1_label.config(text=f"Player 1: {self.player1_points} points remaining")
         self.player2_label.config(text=f"Player 2: {self.player2_points} points remaining")
         self.result_label.config(text=round_result)
+        
+        # Update round history
+        self.round_history.append(f"Round {self.round}: {round_result}")
+        self.round_history_display.config(text="\n".join(self.round_history))
+
+        # Reset inputs for the next round
+        self.player1_input = None
+        self.player2_input = None
 
         # Check if game is over
         if self.round == 7:
