@@ -15,70 +15,104 @@ class GameGUI:
         self.root = root
         self.root.title("Point Game")
         
+        # Set the window to a fixed size and center it
+        self.root.geometry("500x400")
+        self.root.resizable(False, False)
+        
         self.player1_points = 20
         self.player2_points = 20
         self.player1_wins = 0
         self.player2_wins = 0
         self.round = 1
+        self.current_player = None
         self.tiebreaker_winner = random.choice(["Player 1", "Player 2"])
+        self.player1_input = None
+        self.player2_input = None
+        
+        # Configure fonts for labels and buttons
+        self.label_font = ("Arial", 14)
+        self.entry_font = ("Arial", 12)
+        self.button_font = ("Arial", 12, "bold")
         
         self.setup_ui()
     
     def setup_ui(self):
+        # Frame to center all content
+        frame = tk.Frame(self.root)
+        frame.pack(expand=True)
+        
         # Display initial tiebreaker winner
-        self.tiebreaker_label = tk.Label(self.root, text=f"{self.tiebreaker_winner} wins the coin flip and will win the first tie.")
-        self.tiebreaker_label.grid(row=0, column=0, columnspan=2)
+        self.tiebreaker_label = tk.Label(frame, text=f"{self.tiebreaker_winner} wins the coin flip and will go first.", font=self.label_font)
+        self.tiebreaker_label.pack(pady=(0, 10))
 
         # Round info
-        self.round_label = tk.Label(self.root, text=f"Round {self.round}")
-        self.round_label.grid(row=1, column=0, columnspan=2)
+        self.round_label = tk.Label(frame, text=f"Round {self.round}", font=self.label_font)
+        self.round_label.pack(pady=(0, 10))
 
-        # Player 1 info
-        self.player1_label = tk.Label(self.root, text=f"Player 1: {self.player1_points} points remaining")
-        self.player1_label.grid(row=2, column=0)
-        self.player1_entry = tk.Entry(self.root)
-        self.player1_entry.grid(row=3, column=0)
+        # Player info labels
+        self.player1_label = tk.Label(frame, text=f"Player 1: {self.player1_points} points remaining", font=self.label_font)
+        self.player1_label.pack()
+        self.player2_label = tk.Label(frame, text=f"Player 2: {self.player2_points} points remaining", font=self.label_font)
+        self.player2_label.pack()
 
-        # Player 2 info
-        self.player2_label = tk.Label(self.root, text=f"Player 2: {self.player2_points} points remaining")
-        self.player2_label.grid(row=2, column=1)
-        self.player2_entry = tk.Entry(self.root)
-        self.player2_entry.grid(row=3, column=1)
+        # Entry field for player input
+        self.player_entry_label = tk.Label(frame, text="", font=self.label_font)
+        self.player_entry_label.pack(pady=(20, 5))
+        self.player_entry = tk.Entry(frame, font=self.entry_font, justify="center", width=10)
+        self.player_entry.pack()
 
         # Submit button
-        self.submit_button = tk.Button(self.root, text="Submit Points", command=self.submit_points)
-        self.submit_button.grid(row=4, column=0, columnspan=2)
+        self.submit_button = tk.Button(frame, text="Submit Points", font=self.button_font, command=self.submit_points)
+        self.submit_button.pack(pady=20)
 
         # Result display
-        self.result_label = tk.Label(self.root, text="")
-        self.result_label.grid(row=5, column=0, columnspan=2)
+        self.result_label = tk.Label(frame, text="", font=self.label_font)
+        self.result_label.pack(pady=(10, 0))
+
+        # Initialize the current player based on tiebreaker
+        self.current_player = self.tiebreaker_winner
+        self.update_player_prompt()
+
+    def update_player_prompt(self):
+        self.player_entry_label.config(text=f"{self.current_player}, enter your points:")
+    
+    def switch_player(self):
+        self.current_player = "Player 1" if self.current_player == "Player 2" else "Player 2"
+        self.update_player_prompt()
 
     def submit_points(self):
         try:
-            player1_input = int(self.player1_entry.get())
-            player2_input = int(self.player2_entry.get())
+            points = int(self.player_entry.get())
         except ValueError:
-            messagebox.showerror("Invalid Input", "Please enter valid integers for both players.")
+            messagebox.showerror("Invalid Input", "Please enter a valid integer.")
             return
-        
+
         # Validate points
-        if player1_input > self.player1_points or player2_input > self.player2_points:
-            messagebox.showerror("Invalid Points", "Players cannot bet more points than they have remaining.")
+        if self.current_player == "Player 1" and points > self.player1_points:
+            messagebox.showerror("Invalid Points", "Player 1 cannot bet more points than they have remaining.")
+            return
+        elif self.current_player == "Player 2" and points > self.player2_points:
+            messagebox.showerror("Invalid Points", "Player 2 cannot bet more points than they have remaining.")
             return
 
-        # Clear entries for next round
-        self.player1_entry.delete(0, tk.END)
-        self.player2_entry.delete(0, tk.END)
+        # Store points for the current player and clear entry
+        if self.current_player == "Player 1":
+            self.player1_input = points
+            self.player_entry.delete(0, tk.END)
+            self.switch_player()
+        else:
+            self.player2_input = points
+            self.player_entry.delete(0, tk.END)
+            self.determine_round_winner()
 
-        # Determine the round winner
-        if player1_input > player2_input:
+    def determine_round_winner(self):
+        if self.player1_input > self.player2_input:
             round_result = "Player 1 wins the round!"
             self.player1_wins += 1
-        elif player2_input > player1_input:
+        elif self.player2_input > self.player1_input:
             round_result = "Player 2 wins the round!"
             self.player2_wins += 1
         else:
-            # Tie - use tiebreaker
             if self.tiebreaker_winner == "Player 1":
                 round_result = "Player 1 wins the tie!"
                 self.player1_wins += 1
@@ -87,10 +121,9 @@ class GameGUI:
                 round_result = "Player 2 wins the tie!"
                 self.player2_wins += 1
                 self.tiebreaker_winner = "Player 1"
-        
-        # Update points
-        self.player1_points -= player1_input
-        self.player2_points -= player2_input
+
+        self.player1_points -= self.player1_input
+        self.player2_points -= self.player2_input
 
         # Update labels
         self.player1_label.config(text=f"Player 1: {self.player1_points} points remaining")
@@ -103,6 +136,8 @@ class GameGUI:
         else:
             self.round += 1
             self.round_label.config(text=f"Round {self.round}")
+            self.current_player = self.tiebreaker_winner
+            self.update_player_prompt()
 
     def end_game(self):
         if self.player1_wins > self.player2_wins:
